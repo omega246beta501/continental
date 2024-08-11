@@ -1,0 +1,253 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+#game {
+    margin: 20px auto;
+    width: 95%;
+}
+
+h1 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.hand,
+.pile {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 10px 0;
+}
+
+.card {
+    width: 40px;
+    height: 60px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.fixed-div {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    /* z-index: 40; */
+    background-color: transparent;
+}
+
+#controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.game-button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+#draw-card:hover,
+#draw-discard:hover,
+#end-turn:hover {
+    background-color: #0056b3;
+}
+
+.draggable {
+    position: absolute;
+    cursor: grab;
+    user-select: none; /* Prevent text selection */
+}
+
+.row::after {
+    content: '';
+    clear: both;
+    display: table;
+}
+
+[class*='col-'] {
+    float: left;
+}
+
+/* For mobile phones: */
+[class*='col-'] {
+    width: 100%;
+}
+
+@media only screen and (min-width: 200px) {
+    /* For tablets: */
+    .col-xs-1 {
+        width: 8.33%;
+    }
+
+    .col-xs-2 {
+        width: 16.66%;
+    }
+
+    .col-xs-3 {
+        width: 25%;
+    }
+
+    .col-xs-4 {
+        width: 33.33%;
+    }
+
+    .col-xs-5 {
+        width: 41.66%;
+    }
+
+    .col-xs-6 {
+        width: 50%;
+    }
+
+    .col-xs-7 {
+        width: 58.33%;
+    }
+
+    .col-xs-8 {
+        width: 66.66%;
+    }
+
+    .col-xs-9 {
+        width: 75%;
+    }
+
+    .col-xs-10 {
+        width: 83.33%;
+    }
+
+    .col-xs-11 {
+        width: 91.66%;
+    }
+
+    .col-xs-12 {
+        width: 100%;
+    }
+}
+
+@media only screen and (min-width: 600px) {
+    /* For tablets: */
+    .col-s-1 {
+        width: 8.33%;
+    }
+
+    .col-s-2 {
+        width: 16.66%;
+    }
+
+    .col-s-3 {
+        width: 25%;
+    }
+
+    .col-s-4 {
+        width: 33.33%;
+    }
+
+    .col-s-5 {
+        width: 41.66%;
+    }
+
+    .col-s-6 {
+        width: 50%;
+    }
+
+    .col-s-7 {
+        width: 58.33%;
+    }
+
+    .col-s-8 {
+        width: 66.66%;
+    }
+
+    .col-s-9 {
+        width: 75%;
+    }
+
+    .col-s-10 {
+        width: 83.33%;
+    }
+
+    .col-s-11 {
+        width: 91.66%;
+    }
+
+    .col-s-12 {
+        width: 100%;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    /* For desktop: */
+    .col-1 {
+        width: 8.33%;
+    }
+
+    .col-2 {
+        width: 16.66%;
+    }
+
+    .col-3 {
+        width: 25%;
+    }
+
+    .col-4 {
+        width: 33.33%;
+    }
+
+    .col-5 {
+        width: 41.66%;
+    }
+
+    .col-6 {
+        width: 50%;
+    }
+
+    .col-7 {
+        width: 58.33%;
+    }
+
+    .col-8 {
+        width: 66.66%;
+    }
+
+    .col-9 {
+        width: 75%;
+    }
+
+    .col-10 {
+        width: 83.33%;
+    }
+
+    .col-11 {
+        width: 91.66%;
+    }
+
+    .col-12 {
+        width: 100%;
+    }
+}
