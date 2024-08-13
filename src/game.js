@@ -97,6 +97,9 @@ class Game {
     }
 
     drawInitialHands() {
+        this.hasDrawn = false;
+        this.hasDiscarded = false;
+
         this.players.forEach((player, index) => {
             player.hand = []
             player.isDown = false
@@ -111,10 +114,23 @@ class Game {
             })
         }
 
+        // const suits = ['♠', '♥', '♣', '♦']
+
+        // this.players[0].hand = [
+        //     new Card(suits[0], '2'),
+        //     new Card(suits[1], '2'),
+        //     new Card(suits[2], '2'),
+        //     new Card(suits[2], 'K'),
+        //     new Card(suits[3], 'K'),
+        //     new Card(suits[1], 'K'),
+        //     new Card(suits[1], 'A'),
+        // ];
+
         this.discardPile.push(this.deck.draw())
     }
 
     drawCard() {
+        
         if (this.hasDrawn) {
             alert('Ya has robado una carta en este turno.')
             return
@@ -205,7 +221,16 @@ class Game {
     }
 
     endRound() {
-        this.currentRound++
+        this.currentRound++;
+        let winner = this.currentPlayer;
+        winner.roundsWon++;
+        winner.score -= (this.currentRound + 1) * 10;
+
+        this.players.forEach(player => {
+            player.recalculateScore();
+            alert(`${player.name}: ${player.score} puntos.`);
+        })
+
         if (this.currentRound >= this.roundDealNumber.length) {
             alert('El juego ha terminado')
         } else {
@@ -244,6 +269,19 @@ class Game {
         } else {
             alert('Para poder bajarte debes robar primero')
         }
+    }
+
+    moveToTable(groups) {
+        const player = this.currentPlayer;
+        groups.forEach(group => {
+            this.table.push(group);
+            group.forEach(card => {
+                const index = player.hand.indexOf(card);
+                if (index !== -1) {
+                    player.hand.splice(index, 1);
+                }
+            });
+        });
     }
 
     contractTwoTrios(hand) {

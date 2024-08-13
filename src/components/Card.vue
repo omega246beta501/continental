@@ -38,7 +38,6 @@ export default {
     mounted() {},
     computed: {
         computedLeft() {
-            debugger
             return this.card.left || `${this.index * 90}px`
         },
         computedTop() {

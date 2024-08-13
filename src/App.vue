@@ -1,9 +1,14 @@
 <script setup>
-import Game from '@/components/Game.vue'
+import { RouterLink, RouterView } from 'vue-router'
+
 </script>
 
 <template>
-    <Game />
+    <RouterView v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+            <component :is="Component" />
+        </transition>
+    </RouterView>
 </template>
 
 <style>

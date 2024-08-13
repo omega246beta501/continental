@@ -58,7 +58,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
+    flex-direction: row;
 }
 
 .game-button {
@@ -250,4 +250,11 @@ h1 {
     .col-12 {
         width: 100%;
     }
+}
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+    opacity: 0;
 }

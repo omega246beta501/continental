@@ -1,45 +1,64 @@
 <template>
     <div id="game">
-        <h1>Card Game</h1>
-        <div id="controls">
-            <button class="game-button" @click="drawCard" :disabled="game.hasDrawn">
-                Robar carta
-            </button>
-            <button class="game-button" @click="goDown" v-show="!game.currentPlayer.isDown">
-                Go Down
-            </button>
-            <button class="game-button" @click="meterCard" v-show="game.currentPlayer.isDown">
-                Meter Card
-            </button>
+        <div class="row">
+            <div class="col">
+                <h1>Continental</h1>
+                <h2>{{ game.currentPlayer.name }}</h2>
+            </div>
         </div>
-        <div id="players-hands">
-            <h2>{{ game.currentPlayer.name }}</h2>
-            <!-- <div class="hand">
-                <div v-for="(card, index) in currentPlayer.hand" :key="card.id" class="card" @click="discardCard(index)">
-                    {{ card.getCardString() }}
+        <div class="row">
+            <div id="controls" class="col">
+                <button class="game-button" @click="drawCard" v-show="!game.hasDrawn">
+                    Robar carta
+                </button>
+                <button class="game-button" @click="goDown" v-show="!game.currentPlayer.isDown">
+                    Bajarse
+                </button>
+                <button class="game-button" @click="meterCard" v-show="game.currentPlayer.isDown">
+                    Meter
+                </button>
+                <button class="game-button" @click="showScores">
+                    Ver puntuaciones
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div id="discard-pile">
+                    <div v-if="discardPile.length" class="card" @click="drawDiscard">
+                        {{ discardPile[discardPile.length - 1].getCardString() }}
+                    </div>
                 </div>
-            </div> -->
-            <div class="hand">
-                <Card
-                    v-for="(card, index) in currentPlayer.hand"
-                    :key="card.id"
-                    :card="card"
-                    :index="index"
-                    @increase-highest-z-index="increaseHighestZindex"
-                    @discardCard="discardCard(index)"
-                    :highestZIndex="highestZIndex"
-                />
             </div>
         </div>
-        <div id="discard-pile">
-            <div v-if="discardPile.length" class="card" @click="drawDiscard">
-                {{ discardPile[discardPile.length - 1].getCardString() }}
+
+        <div class="row">
+            <div class="col">
+                <div id="players-hands">
+                    <div class="hand">
+                        <Card
+                            v-for="(card, index) in currentPlayer.hand"
+                            :key="card.id"
+                            :card="card"
+                            :index="index"
+                            @increase-highest-z-index="increaseHighestZindex"
+                            @discardCard="discardCard(index)"
+                            :highestZIndex="highestZIndex"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="table">
-            <div v-for="(group, index) in table" :key="index" class="pile">
-                <div v-for="card in group" :key="card.id" class="card">
-                    {{ card.getCardString() }}
+        
+        <div class="row">
+            <div class="col">
+                <div id="table">
+                    <div v-for="(group, index) in table" :key="index" class="pile">
+                        <div v-for="card in group" :key="card.id" class="card">
+                            {{ card.getCardString() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -55,7 +74,7 @@ export default {
 
     data() {
         return {
-            game: new Game(),
+            game: null,
             currentPlayer: null,
             highestZIndex: 1000,
             discardPile: [],
@@ -63,7 +82,7 @@ export default {
         }
     },
     created() {
-        this.game = new Game(2)
+        this.game = this.$commonGameObject;
         this.updateState()
     },
     mounted() {
@@ -98,6 +117,9 @@ export default {
         },
         increaseHighestZindex() {
             this.highestZIndex++
+        },
+        showScores() {
+            this.$router.push('/scores');
         }
     }
 }
