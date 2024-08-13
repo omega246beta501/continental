@@ -37,20 +37,18 @@
 export default {
     data() {
         return {
-            game: null,
+            game: null
         }
     },
     created() {
-        this.game = this.$commonGameObject;
+        this.game = this.$commonGameObject
     },
     methods: {
         goBack() {
-            this.$router.go(-1); // Navigates back to the previous page
+            this.$router.go(-1) // Navigates back to the previous page
         }
     }
 }
 </script>
 
-<style>
-
-</style>
+<style></style>

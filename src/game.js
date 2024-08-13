@@ -97,10 +97,10 @@ class Game {
     }
 
     drawInitialHands() {
-        this.hasDrawn = false;
-        this.hasDiscarded = false;
+        this.hasDrawn = false
+        this.hasDiscarded = false
 
-        this.players.forEach((player, index) => {
+        this.players.forEach((player) => {
             player.hand = []
             player.isDown = false
         })
@@ -130,7 +130,6 @@ class Game {
     }
 
     drawCard() {
-        
         if (this.hasDrawn) {
             alert('Ya has robado una carta en este turno.')
             return
@@ -221,14 +220,14 @@ class Game {
     }
 
     endRound() {
-        this.currentRound++;
-        let winner = this.currentPlayer;
-        winner.roundsWon++;
-        winner.score -= (this.currentRound + 1) * 10;
+        this.currentRound++
+        let winner = this.currentPlayer
+        winner.roundsWon++
+        winner.score -= (this.currentRound + 1) * 10
 
-        this.players.forEach(player => {
-            player.recalculateScore();
-            alert(`${player.name}: ${player.score} puntos.`);
+        this.players.forEach((player) => {
+            player.recalculateScore()
+            alert(`${player.name}: ${player.score} puntos.`)
         })
 
         if (this.currentRound >= this.roundDealNumber.length) {
@@ -272,16 +271,16 @@ class Game {
     }
 
     moveToTable(groups) {
-        const player = this.currentPlayer;
-        groups.forEach(group => {
-            this.table.push(group);
-            group.forEach(card => {
-                const index = player.hand.indexOf(card);
+        const player = this.currentPlayer
+        groups.forEach((group) => {
+            this.table.push(group)
+            group.forEach((card) => {
+                const index = player.hand.indexOf(card)
                 if (index !== -1) {
-                    player.hand.splice(index, 1);
+                    player.hand.splice(index, 1)
                 }
-            });
-        });
+            })
+        })
     }
 
     contractTwoTrios(hand) {

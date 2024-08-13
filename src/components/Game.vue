@@ -17,9 +17,7 @@
                 <button class="game-button" @click="meterCard" v-show="game.currentPlayer.isDown">
                     Meter
                 </button>
-                <button class="game-button" @click="showScores">
-                    Ver puntuaciones
-                </button>
+                <button class="game-button" @click="showScores">Ver puntuaciones</button>
             </div>
         </div>
 
@@ -50,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col">
                 <div id="table">
@@ -66,7 +64,6 @@
 </template>
 
 <script>
-import { Game } from '../game.js' // Import the Game class
 import Card from './Card.vue'
 
 export default {
@@ -82,7 +79,7 @@ export default {
         }
     },
     created() {
-        this.game = this.$commonGameObject;
+        this.game = this.$commonGameObject
         this.updateState()
     },
     mounted() {
@@ -119,7 +116,7 @@ export default {
             this.highestZIndex++
         },
         showScores() {
-            this.$router.push('/scores');
+            this.$router.push('/scores')
         }
     }
 }
