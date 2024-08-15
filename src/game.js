@@ -202,15 +202,17 @@ class Game {
     drawDiscard(playerIndex) {
         if (this.hasDrawn) {
             alert('Ya has robado una carta en este turno.')
-            return
+            return false
         }
         if (this.discardPile.length === 0) {
             alert('No hay cartas en la pila de descarte.')
-            return
+            return false
         }
         const card = this.discardPile.pop()
         this.players[playerIndex].hand.push(card)
         this.hasDrawn = true
+
+        return this.hasDrawn
     }
 
     discardCard(playerIndex, cardIndex) {

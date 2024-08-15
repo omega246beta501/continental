@@ -8,6 +8,8 @@ let clients = []
 const game = new Game()
 
 let turnMessages = []
+let roundMessages = []
+
 wss.on('connection', (ws) => {
 
     function sendToAll(message) {
@@ -28,6 +30,11 @@ wss.on('connection', (ws) => {
 
     function enviar(message) {
         ws.send(JSON.stringify(message))
+    }
+
+    function storeMessage(message) {
+        turnMessages.push(message)
+        roundMessages.push(message)
     }
 
     clients.push(ws)
@@ -65,7 +72,23 @@ wss.on('connection', (ws) => {
         }
 
         if (key == 'playerDrawedCard') {
-            turnMessages.push(`Jugador ${value} ha robado una carta`)
+            game.copy(jsonMessage.game)
+            const message = `${value} ha robado una carta`
+
+            storeMessage(message)
+            sendToAllButSender({
+                key: 'roundMessages',
+                value: turnMessages
+            })
+        }
+
+        if (key == 'playerDrawedDiscard') {
+            game.copy(jsonMessage.game)
+            const cardPlayed = game.players[game.currentPlayerIndex].hand.at(-1).getCardString()
+            const message = `${value} ha robado la carta ${cardPlayed} de la pila de descartes`
+            storeMessage(message)
+
+            sendToAllButSender({ key: 'gameUpdated', value: game })
             sendToAllButSender({
                 key: 'roundMessages',
                 value: turnMessages

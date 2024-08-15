@@ -44,7 +44,6 @@ export default {
             this.ws.send(JSON.stringify({ key: 'startGame'} ))
         },
         startGame() {
-            alert("Empieza el juego")
             this.$router.push({
                 name: 'game',
                 query: {

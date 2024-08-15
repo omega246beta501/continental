@@ -3,10 +3,12 @@
         <div class="row">
             <div class="col">
                 <h1>Continental</h1>
-                <h2>Turno de {{ game.currentPlayer.name }}</h2>
-                <template v-show="isMyTurn">
+                <h2 v-if="!isMyTurn">Turno de {{ game.currentPlayer.name }}</h2>
+                <h2 v-if="isMyTurn">Es tu turno</h2>
+
+                <div v-show="!isMyTurn">
                     <h3 v-for="(roundMessage, index) in roundMessages"> {{ roundMessage }}</h3>
-                </template>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -88,14 +90,16 @@ export default {
             table: [],
             roundMessages: [],
             hasDrawn: false,
+            ws: null,
         }
     },
     created() {
-        this.game = this.$commonGameObject
         this.ws = this.$commonWebSocket
-
-        this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
-        this.thisPlayerIndex = this.thisPlayer.index
+        this.game = this.$commonGameObject
+        this.game.addPlayer('')
+        this.game.currentPlayer = this.game.players[0]
+        this.currentPlayer = this.game.currentPlayer
+        this.thisPlayer = this.currentPlayer
 
         this.ws.onmessage = (event) => {
             console.log(event.data)
@@ -106,15 +110,25 @@ export default {
                 this.game = this.$commonGameObject
                 this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
                 this.thisPlayerIndex = this.thisPlayer.index
+                this.currentPlayer = this.game.currentPlayer
             }
 
             if (message.key == 'roundMessages') {
                 this.roundMessages = message.value
             }
         };
-        
-        this.ws.send(JSON.stringify({ key: 'updateGame'} ))
-        this.updateState()
+
+        setTimeout(() => {
+            this.ws.send(JSON.stringify({ key: 'updateGame'} ))
+        }, 100);
+
+        setTimeout(() => {
+            this.game = this.$commonGameObject
+    
+            this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
+            this.thisPlayerIndex = this.thisPlayer.index
+            this.updateState()
+        }, 200);
     },
     computed: {
         isMyTurn() {
@@ -128,15 +142,17 @@ export default {
         updateState() {
             this.discardPile = this.game.discardPile
             this.table = this.game.table
+            this.hasDrawn = this.game.hasDrawn
         },
         drawCard() {
-            this.hasDrawn = this.game.drawCard(this.thisPlayer.index)
-            if (this.hasDrawn) {
-                this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName } ))
+            if (this.game.drawCard(this.thisPlayer.index)) {
+                this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName, game: this.game } ))
             }
         },
         drawDiscard() {
-            this.game.drawDiscard(this.thisPlayer.index)
+            if (this.game.drawDiscard(this.thisPlayer.index)) {
+                this.ws.send(JSON.stringify({ key: 'playerDrawedDiscard', value: this.playerName, game: this.game } ))
+            }
             this.updateState()
         },
         discardCard(cardIndex) {
