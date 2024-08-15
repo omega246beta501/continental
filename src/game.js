@@ -1,10 +1,14 @@
 class Player {
-    constructor(name) {
+    constructor(name, roundsWon = 0, score = 0, isDown = false, index = null) {
         this.hand = []
-        this.roundsWon = 0
-        this.score = 0
-        this.isDown = false
+        this.roundsWon = roundsWon
+        this.score = score
+        this.isDown = isDown
         this.name = name
+
+        if (index !== null) {
+            this.index = index
+        }
     }
 
     recalculateScore() {
@@ -31,13 +35,15 @@ class Player {
 class Card {
     static idOffset = 0
 
-    constructor(suit, value) {
+    constructor(suit, value, top = null, left = null, id = null) {
         this.suit = suit
         this.value = value
-        this.id = `card${Card.idOffset}`
-        Card.idOffset++
-        this.top = null
-        this.left = null
+        if (id == null) {
+            this.id = `card${Card.idOffset}`
+            Card.idOffset++
+        }
+        this.top = top
+        this.left = left
     }
 
     getCardString() {
@@ -77,19 +83,71 @@ class Deck {
 }
 
 class Game {
-    constructor(numPlayers = 4) {
+    constructor() {
         this.deck = new Deck()
-        this.players = Array.from({ length: numPlayers }, (v, i) => new Player(`Jugador ${i + 1}`))
+        this.players = []
         this.roundDealNumber = [7, 8, 9, 10, 11, 12, 13]
         this.contracts = [this.contractTwoTrios]
         this.discardPile = []
         this.table = []
+        this.currentPlayer = null
         this.currentPlayerIndex = 0
-        this.currentPlayer = this.players[this.currentPlayerIndex]
         this.hasDrawn = false
         this.hasDiscarded = false
         this.currentRound = 0
-        this.setup()
+    }
+
+    copy(game) {
+        this.deck.cards = []
+        game.deck.cards.forEach(card => {
+            this.deck.cards.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+        });
+
+        this.players = []
+        game.players.forEach(player => {
+            const newPlayer = new Player(player.name, player.roundsWon, player.score, player.isDown, player.index)
+            player.hand.forEach(card => {
+                newPlayer.hand.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+            });
+
+            this.players.push(newPlayer)
+        });
+
+        this.discardPile = []
+        game.discardPile.forEach(card => {
+            this.discardPile.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+        });
+        this.table = []
+        game.table.forEach(card => {
+            this.table.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+        });
+
+        this.currentPlayer = new Player(game.currentPlayer.name, game.currentPlayer.roundsWon, game.currentPlayer.score, game.currentPlayer.isDown, game.currentPlayer.index)
+        this.currentRound = game.currentRound
+        this.hasDrawn = game.hasDrawn
+        this.hasDiscarded = game.hasDiscarded
+
+    }
+
+    getPlayer(name) {
+        let foundPlayer = null
+        this.players.forEach(player => {
+            if (player.name == name) {
+                foundPlayer = player
+            }
+        });
+        return foundPlayer
+    }
+
+    startGame() {
+        this.currentPlayer = this.players[this.currentPlayerIndex];
+        this.setup();
+    }
+
+    addPlayer(playerName) {
+        const index = this.players.push(new Player(playerName))
+        this.players[index - 1].index = index - 1
+        console.log(this.players)
     }
 
     setup() {
@@ -129,17 +187,19 @@ class Game {
         this.discardPile.push(this.deck.draw())
     }
 
-    drawCard() {
+    drawCard(playerIndex) {
         if (this.hasDrawn) {
             alert('Ya has robado una carta en este turno.')
-            return
+            return false
         }
         const card = this.deck.draw()
-        this.currentPlayer.hand.push(card)
+        this.players[playerIndex].hand.push(card)
         this.hasDrawn = true
+
+        return true
     }
 
-    drawDiscard() {
+    drawDiscard(playerIndex) {
         if (this.hasDrawn) {
             alert('Ya has robado una carta en este turno.')
             return
@@ -149,11 +209,11 @@ class Game {
             return
         }
         const card = this.discardPile.pop()
-        this.currentPlayer.hand.push(card)
+        this.players[playerIndex].hand.push(card)
         this.hasDrawn = true
     }
 
-    discardCard(cardIndex) {
+    discardCard(playerIndex, cardIndex) {
         if (!this.hasDrawn) {
             alert('Debes robar una carta antes de descartar.')
             return
@@ -162,10 +222,10 @@ class Game {
             alert('Ya has descartado una carta en este turno.')
             return
         }
-        const card = this.currentPlayer.hand.splice(cardIndex, 1)[0]
+        const card = this.players[playerIndex].hand.splice(cardIndex, 1)[0]
         this.discardPile.push(card)
         this.hasDiscarded = true
-        this.endTurn()
+        this.endTurn(playerIndex)
     }
 
     addToTable(card) {
@@ -181,9 +241,11 @@ class Game {
         return false
     }
 
-    meterCard() {
-        if (this.currentPlayer.isDown) {
-            const playerHand = this.currentPlayer.hand
+    meterCard(playerIndex) {
+        const player = this.players[playerIndex]
+
+        if (player.isDown) {
+            const playerHand = player.hand
             if (playerHand.length <= 1) {
                 alert('No puedes meter tu última carta.')
                 return
@@ -202,32 +264,30 @@ class Game {
         }
     }
 
-    endTurn() {
+    endTurn(playerIndex) {
         if (!this.hasDrawn || !this.hasDiscarded) {
             alert('Debes robar y descartar una carta antes de terminar tu turno.')
             return
         }
-        const player = this.currentPlayer
+        const player = this.players[playerIndex]
         if (player.hand.length == 0) {
             alert('Enhorabuena has ganado esta ronda')
-            this.endRound()
+            this.endRound(player)
         } else {
-            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length
+            this.currentPlayerIndex = (playerIndex + 1) % this.players.length
             this.currentPlayer = this.players[this.currentPlayerIndex]
             this.hasDrawn = false
             this.hasDiscarded = false
         }
     }
 
-    endRound() {
+    endRound(winner) {
         this.currentRound++
-        let winner = this.currentPlayer
         winner.roundsWon++
         winner.score -= (this.currentRound + 1) * 10
 
         this.players.forEach((player) => {
             player.recalculateScore()
-            alert(`${player.name}: ${player.score} puntos.`)
         })
 
         if (this.currentRound >= this.roundDealNumber.length) {
@@ -237,16 +297,15 @@ class Game {
         }
     }
 
-    checkContract() {
-        const playerHand = this.currentPlayer.hand
+    checkContract(playerHand) {
         const contractFunction = this.contracts[this.currentRound]
         return contractFunction(playerHand)
     }
 
-    goDown() {
+    goDown(playerIndex) {
         if (this.hasDrawn) {
-            const trios = this.checkContract()
-            const playerHand = this.currentPlayer.hand
+            const playerHand = this.players[playerIndex].hand
+            const trios = this.checkContract(playerHand)
 
             if (trios) {
                 // Calculate the remaining cards after forming trios
@@ -257,8 +316,8 @@ class Game {
                 let numRemainingCards = remainingCards.length
 
                 if (numRemainingCards <= 4) {
-                    this.currentPlayer.isDown = true
-                    this.moveToTable(trios)
+                    this.players[playerIndex].isDown = true
+                    this.moveToTable(playerIndex, trios)
                 } else {
                     alert('No puedes bajarte porque tienes más de 4 cartas restantes.')
                 }
@@ -270,8 +329,8 @@ class Game {
         }
     }
 
-    moveToTable(groups) {
-        const player = this.currentPlayer
+    moveToTable(playerIndex, groups) {
+        const player = this.players[playerIndex]
         groups.forEach((group) => {
             this.table.push(group)
             group.forEach((card) => {

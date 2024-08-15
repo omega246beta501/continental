@@ -3,18 +3,21 @@
         <div class="row">
             <div class="col">
                 <h1>Continental</h1>
-                <h2>{{ game.currentPlayer.name }}</h2>
+                <h2>Turno de {{ game.currentPlayer.name }}</h2>
+                <template v-show="isMyTurn">
+                    <h3 v-for="(roundMessage, index) in roundMessages"> {{ roundMessage }}</h3>
+                </template>
             </div>
         </div>
         <div class="row">
             <div id="controls" class="col">
-                <button class="game-button" @click="drawCard" v-show="!game.hasDrawn">
+                <button class="game-button" @click="drawCard" v-show="!hasDrawn && game.currentPlayer.name == thisPlayer.name">
                     Robar carta
                 </button>
-                <button class="game-button" @click="goDown" v-show="!game.currentPlayer.isDown">
+                <button class="game-button" @click="goDown" v-show="!thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name">
                     Bajarse
                 </button>
-                <button class="game-button" @click="meterCard" v-show="game.currentPlayer.isDown">
+                <button class="game-button" @click="meterCard" v-show="thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name">
                     Meter
                 </button>
                 <button class="game-button" @click="showScores">Ver puntuaciones</button>
@@ -24,7 +27,7 @@
         <div class="row">
             <div class="col">
                 <div id="discard-pile">
-                    <div v-if="discardPile.length" class="card" @click="drawDiscard">
+                    <div v-if="discardPile.length" class="card" @click="drawDiscard(thisPlayer.name)">
                         {{ discardPile[discardPile.length - 1].getCardString() }}
                     </div>
                 </div>
@@ -36,7 +39,7 @@
                 <div id="players-hands">
                     <div class="hand">
                         <Card
-                            v-for="(card, index) in currentPlayer.hand"
+                            v-for="(card, index) in thisPlayer.hand"
                             :key="card.id"
                             :card="card"
                             :index="index"
@@ -68,48 +71,84 @@ import Card from './Card.vue'
 
 export default {
     components: { Card },
-
+    props: {
+        playerName: {
+            required: true,
+            type: String
+        }
+    },
     data() {
         return {
             game: null,
             currentPlayer: null,
             highestZIndex: 1000,
+            thisPlayer: null,
+            thisPlayerIndex: null,
             discardPile: [],
-            table: []
+            table: [],
+            roundMessages: [],
+            hasDrawn: false,
         }
     },
     created() {
         this.game = this.$commonGameObject
+        this.ws = this.$commonWebSocket
+
+        this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
+        this.thisPlayerIndex = this.thisPlayer.index
+
+        this.ws.onmessage = (event) => {
+            console.log(event.data)
+            let message = JSON.parse(event.data)
+
+            if (message.key == 'gameUpdated') {
+                this.$commonGameObject.copy(message.value)
+                this.game = this.$commonGameObject
+                this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
+                this.thisPlayerIndex = this.thisPlayer.index
+            }
+
+            if (message.key == 'roundMessages') {
+                this.roundMessages = message.value
+            }
+        };
+        
+        this.ws.send(JSON.stringify({ key: 'updateGame'} ))
         this.updateState()
     },
+    computed: {
+        isMyTurn() {
+            return this.currentPlayer.name == this.playerName
+        }
+    },
     mounted() {
-        // this.game = new Game();
-        // this.updateState();
+        // this.ws.send(JSON.stringify({ key: 'updateGame'} ))
     },
     methods: {
         updateState() {
-            this.currentPlayer = this.game.currentPlayer
             this.discardPile = this.game.discardPile
             this.table = this.game.table
         },
         drawCard() {
-            this.game.drawCard()
-            this.updateState()
+            this.hasDrawn = this.game.drawCard(this.thisPlayer.index)
+            if (this.hasDrawn) {
+                this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName } ))
+            }
         },
         drawDiscard() {
-            this.game.drawDiscard()
+            this.game.drawDiscard(this.thisPlayer.index)
             this.updateState()
         },
-        discardCard(index) {
-            this.game.discardCard(index)
+        discardCard(cardIndex) {
+            this.game.discardCard(this.thisPlayer.index, cardIndex)
             this.updateState()
         },
         goDown() {
-            this.game.goDown()
+            this.game.goDown(this.thisPlayerIndex)
             this.updateState()
         },
         meterCard() {
-            this.game.meterCard()
+            this.game.meterCard(this.thisPlayerIndex)
             this.updateState()
         },
         increaseHighestZindex() {

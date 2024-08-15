@@ -6,9 +6,11 @@ import router from './router'
 import { Game } from './game'
 
 const app = createApp(App)
-const commonGameObject = new Game(2)
-
+debugger
+const commonGameObject = new Game()
+const commonWebSocket = new WebSocket('ws://localhost:8080');
 app.config.globalProperties.$commonGameObject = commonGameObject
+app.config.globalProperties.$commonWebSocket = commonWebSocket
 
 app.use(router)
 
