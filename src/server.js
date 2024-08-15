@@ -8,7 +8,8 @@ let clients = []
 const game = new Game()
 
 let turnMessages = []
-let roundMessages = []
+let gameMessages = []
+let hasGameStarted = false
 
 wss.on('connection', (ws) => {
 
@@ -34,29 +35,38 @@ wss.on('connection', (ws) => {
 
     function storeMessage(message) {
         turnMessages.push(message)
-        roundMessages.push(message)
+        gameMessages.push(message)
+        sendToAll({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages }})
+    }
+
+    function updateGame() {
+        sendToAll({ key: 'gameUpdated', value: game})
+        sendToAll({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages }})
     }
 
     clients.push(ws)
 
     ws.on('message', (message) => {
-        console.log('received: %s', message)
+        // console.log('received: %s', message)
 
         const jsonMessage = JSON.parse(message)
         const key = jsonMessage.key
         const value = jsonMessage.value
 
-        if(key == 'addPlayer') {
-            game.addPlayer(value)
-            console.log("Jugadores")
-            game.players.forEach(player => {
-                console.log("Jugador: " + player.name)
-            });
+        if (key == 'addPlayer') {
+            if (!hasGameStarted) {
+                game.addPlayer(value)
+                console.log("Jugadores")
+                game.players.forEach(player => {
+                    console.log("Jugador: " + player.name)
+                });
+            }
         }
 
         if (key == 'startGame') {
             console.log('Empieza el juego')
             game.startGame();
+            hasGameStarted = true
 
             let startGameObject = {
                 key: 'startGame',
@@ -67,8 +77,13 @@ wss.on('connection', (ws) => {
         }
 
         if (key == 'updateGame') {
-            enviar({ key: 'gameUpdated', value: game })
-            enviar({ key: 'roundMessages', value: turnMessages })
+            if (hasGameStarted) {
+                enviar({ key: 'gameUpdated', value: game })
+                enviar({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages } })
+            }
+            else {
+                enviar({ key: 'gameUpdated', value: false })
+            }
         }
 
         if (key == 'playerDrawedCard') {
@@ -76,23 +91,57 @@ wss.on('connection', (ws) => {
             const message = `${value} ha robado una carta`
 
             storeMessage(message)
-            sendToAllButSender({
-                key: 'roundMessages',
-                value: turnMessages
-            })
         }
 
         if (key == 'playerDrawedDiscard') {
             game.copy(jsonMessage.game)
             const cardPlayed = game.players[game.currentPlayerIndex].hand.at(-1).getCardString()
             const message = `${value} ha robado la carta ${cardPlayed} de la pila de descartes`
-            storeMessage(message)
 
-            sendToAllButSender({ key: 'gameUpdated', value: game })
-            sendToAllButSender({
-                key: 'roundMessages',
-                value: turnMessages
-            })
+            storeMessage(message)
+            updateGame()
+            // sendToAllButSender({ key: 'gameUpdated', value: game })
+        }
+
+        if (key == 'playerDiscartedCard') {
+            game.copy(jsonMessage.game)
+            const cardDiscarted = game.discardPile.at(-1).getCardString()
+            const message = `${value} ha descartado la carta ${cardDiscarted}`
+
+            storeMessage(message)
+            updateGame()
+            // sendToAllButSender({ key: 'gameUpdated', value: game })
+            const player = game.currentPlayer
+
+            if (game.endTurn(player.index)) {
+                storeMessage(`${value} ha terminado su turno`)
+
+                if (game.endRound(player.index)) {
+                    storeMessage(`${value} ha cerrado`)
+                    sendToAll({ key: 'roundEnded', value: player.index })
+                }
+                else {
+                    sendToAll({ key: 'turnEnded', value: game.currentPlayer.name })
+                }
+
+                turnMessages = []
+                updateGame()
+                // sendToAll({ key: 'gameUpdated', value: game })
+            }
+        }
+
+        if (key == 'playerWentDown') {
+            game.copy(jsonMessage.game)
+            const message = `${value} se ha bajado`
+            storeMessage(message)
+            updateGame()
+        }
+
+        if (key == 'playerMetioCard') {
+            game.copy(jsonMessage.game)
+            const message = `${value} ha metido una carta`
+            storeMessage(message)
+            updateGame()
         }
 
         // clients.forEach((client) => {

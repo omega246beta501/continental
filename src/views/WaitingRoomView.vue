@@ -29,7 +29,6 @@ export default {
             let message = JSON.parse(event.data)
             if (message.key == 'startGame') {
                 this.$commonGameObject.copy(message.value)
-                console.log(this.$commonGameObject)
                 this.startGame()
             }
         };

@@ -117,9 +117,14 @@ class Game {
         game.discardPile.forEach(card => {
             this.discardPile.push(new Card(card.suit, card.value, card.top, card.left, card.id))
         });
+
         this.table = []
-        game.table.forEach(card => {
-            this.table.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+        game.table.forEach(group => {
+            let newGroup = []
+            group.forEach(card => {
+                newGroup.push(new Card(card.suit, card.value, card.top, card.left, card.id))
+            });
+            this.table.push(newGroup)
         });
 
         this.currentPlayer = new Player(game.currentPlayer.name, game.currentPlayer.roundsWon, game.currentPlayer.score, game.currentPlayer.isDown, game.currentPlayer.index)
@@ -227,7 +232,8 @@ class Game {
         const card = this.players[playerIndex].hand.splice(cardIndex, 1)[0]
         this.discardPile.push(card)
         this.hasDiscarded = true
-        this.endTurn(playerIndex)
+
+        return true
     }
 
     addToTable(card) {
@@ -250,53 +256,59 @@ class Game {
             const playerHand = player.hand
             if (playerHand.length <= 1) {
                 alert('No puedes meter tu última carta.')
-                return
+                return false
             }
 
             for (let i = 0; i < playerHand.length; i++) {
                 const card = playerHand[i]
                 if (this.addToTable(card)) {
                     playerHand.splice(i, 1)
-                    return
+                    return true
                 }
             }
             alert('No hay cartas válidas para meter.')
+            return false
         } else {
             alert('No puedes meter cartas si no te has bajado')
+            return false
         }
     }
 
     endTurn(playerIndex) {
-        if (!this.hasDrawn || !this.hasDiscarded) {
-            alert('Debes robar y descartar una carta antes de terminar tu turno.')
-            return
-        }
-        const player = this.players[playerIndex]
-        if (player.hand.length == 0) {
-            alert('Enhorabuena has ganado esta ronda')
-            this.endRound(player)
-        } else {
-            this.currentPlayerIndex = (playerIndex + 1) % this.players.length
-            this.currentPlayer = this.players[this.currentPlayerIndex]
-            this.hasDrawn = false
-            this.hasDiscarded = false
-        }
+        // if (!this.hasDrawn || !this.hasDiscarded) {
+        //     alert('Debes robar y descartar una carta antes de terminar tu turno.')
+        //     return false
+        // }
+
+        this.currentPlayerIndex = (playerIndex + 1) % this.players.length
+        this.currentPlayer = this.players[this.currentPlayerIndex]
+        this.hasDrawn = false
+        this.hasDiscarded = false
+
+        return true
     }
+    
+    endRound(playerIndex) {
+        const player = this.players[playerIndex]
 
-    endRound(winner) {
-        this.currentRound++
-        winner.roundsWon++
-        winner.score -= (this.currentRound + 1) * 10
+        if (player.hand.length == 0) {
+            this.currentRound++
+            player.roundsWon++
+            player.score -= (this.currentRound + 1) * 10
+    
+            this.players.forEach((player) => {
+                player.recalculateScore()
+            })
 
-        this.players.forEach((player) => {
-            player.recalculateScore()
-        })
-
-        if (this.currentRound >= this.roundDealNumber.length) {
-            alert('El juego ha terminado')
-        } else {
             this.setup()
+            return true
         }
+        
+        return false
+    }
+    
+    finishGame() {
+        return this.currentRound >= this.roundDealNumber.length
     }
 
     checkContract(playerHand) {
@@ -320,14 +332,18 @@ class Game {
                 if (numRemainingCards <= 4) {
                     this.players[playerIndex].isDown = true
                     this.moveToTable(playerIndex, trios)
+                    return true
                 } else {
                     alert('No puedes bajarte porque tienes más de 4 cartas restantes.')
+                    return false
                 }
             } else {
                 alert('No cumples con el contrato de la ronda.')
+                return false
             }
         } else {
             alert('Para poder bajarte debes robar primero')
+            return false
         }
     }
 

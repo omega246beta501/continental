@@ -7,7 +7,7 @@
                 <h2 v-if="isMyTurn">Es tu turno</h2>
 
                 <div v-show="!isMyTurn">
-                    <h3 v-for="(roundMessage, index) in roundMessages"> {{ roundMessage }}</h3>
+                    <h3 v-for="(roundMessage, index) in turnMessages"> {{ roundMessage }}</h3>
                 </div>
             </div>
         </div>
@@ -88,7 +88,8 @@ export default {
             thisPlayerIndex: null,
             discardPile: [],
             table: [],
-            roundMessages: [],
+            gameMessages: [],
+            turnMessages: [],
             hasDrawn: false,
             ws: null,
         }
@@ -102,19 +103,44 @@ export default {
         this.thisPlayer = this.currentPlayer
 
         this.ws.onmessage = (event) => {
-            console.log(event.data)
             let message = JSON.parse(event.data)
 
             if (message.key == 'gameUpdated') {
-                this.$commonGameObject.copy(message.value)
-                this.game = this.$commonGameObject
-                this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
-                this.thisPlayerIndex = this.thisPlayer.index
-                this.currentPlayer = this.game.currentPlayer
+                if (message.value) {
+                    this.$commonGameObject.copy(message.value)
+                    this.game = this.$commonGameObject
+                    this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
+                    this.thisPlayerIndex = this.thisPlayer.index
+                    this.currentPlayer = this.game.currentPlayer
+                    this.updateState()
+                }
+                else {
+                    this.$router.push('/')
+                }
             }
 
-            if (message.key == 'roundMessages') {
-                this.roundMessages = message.value
+            if (message.key == 'logMessages') {
+                this.turnMessages = message.value.turnMessages
+            }
+
+            if (message.key == 'turnEnded') {
+                if (this.playerName == message.value) {
+                    alert("Es tu turno")
+                }
+                else {
+                    alert(`Turno de ${message.value}`)
+                }
+            }
+
+            if (message.key == 'roundEnded') {
+                const winner = this.game.players[message.value]
+
+                if (winner.name == this.playerName) {
+                    alert("Has ganado esta ronda")
+                }
+                else {
+                    alert(`${winner.name} ha ganado esta ronda`)
+                }
             }
         };
 
@@ -145,33 +171,59 @@ export default {
             this.hasDrawn = this.game.hasDrawn
         },
         drawCard() {
-            if (this.game.drawCard(this.thisPlayer.index)) {
-                this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName, game: this.game } ))
+            if (this.checkIsMyTurn()) {
+                if (this.game.drawCard(this.thisPlayer.index)) {
+                    this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName, game: this.game } ))
+                }
             }
         },
         drawDiscard() {
-            if (this.game.drawDiscard(this.thisPlayer.index)) {
-                this.ws.send(JSON.stringify({ key: 'playerDrawedDiscard', value: this.playerName, game: this.game } ))
+            if (this.checkIsMyTurn()) {
+                if (this.game.drawDiscard(this.thisPlayer.index)) {
+                    this.ws.send(JSON.stringify({ key: 'playerDrawedDiscard', value: this.playerName, game: this.game } ))
+                }
+                this.updateState()
             }
-            this.updateState()
         },
         discardCard(cardIndex) {
-            this.game.discardCard(this.thisPlayer.index, cardIndex)
-            this.updateState()
+            if (this.checkIsMyTurn()) {
+                if (this.game.discardCard(this.thisPlayer.index, cardIndex)) {
+                    this.ws.send(JSON.stringify({ key: 'playerDiscartedCard', value: this.playerName, game: this.game } ))
+                }
+                this.updateState()
+            }
         },
         goDown() {
-            this.game.goDown(this.thisPlayerIndex)
-            this.updateState()
+            if (this.checkIsMyTurn()) {
+                if (this.game.goDown(this.thisPlayerIndex)) {
+                    debugger
+                    this.ws.send(JSON.stringify({ key: 'playerWentDown', value: this.playerName, game: this.game } ))
+                }
+                this.updateState()
+            }
         },
         meterCard() {
-            this.game.meterCard(this.thisPlayerIndex)
-            this.updateState()
+            if (this.checkIsMyTurn()) {
+                if (this.game.meterCard(this.thisPlayerIndex)) {
+                    this.ws.send(JSON.stringify({ key: 'playerMetioCard', value: this.playerName, game: this.game } ))
+                }
+                this.updateState()
+            }
         },
         increaseHighestZindex() {
             this.highestZIndex++
         },
         showScores() {
             this.$router.push('/scores')
+        },
+        checkIsMyTurn() {
+            if (this.isMyTurn) {
+                return true
+            }
+            else {
+                alert("No es tu turno")
+                return false
+            }
         }
     }
 }

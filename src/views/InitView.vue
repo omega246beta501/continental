@@ -7,7 +7,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <input type="text" v-model="playerName" value="omega">
+                <input @keydown.enter="submitName" type="text" v-model="playerName">
                 <input @click="submitName" class="game-button" type="button" value="Insertar">
             </div>
         </div>
