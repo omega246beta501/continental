@@ -99,54 +99,65 @@ class Game {
 
     copy(game) {
         this.deck.cards = []
-        game.deck.cards.forEach(card => {
+        game.deck.cards.forEach((card) => {
             this.deck.cards.push(new Card(card.suit, card.value, card.top, card.left, card.id))
-        });
+        })
 
         this.players = []
-        game.players.forEach(player => {
-            const newPlayer = new Player(player.name, player.roundsWon, player.score, player.isDown, player.index)
-            player.hand.forEach(card => {
+        game.players.forEach((player) => {
+            const newPlayer = new Player(
+                player.name,
+                player.roundsWon,
+                player.score,
+                player.isDown,
+                player.index
+            )
+            player.hand.forEach((card) => {
                 newPlayer.hand.push(new Card(card.suit, card.value, card.top, card.left, card.id))
-            });
+            })
 
             this.players.push(newPlayer)
-        });
+        })
 
         this.discardPile = []
-        game.discardPile.forEach(card => {
+        game.discardPile.forEach((card) => {
             this.discardPile.push(new Card(card.suit, card.value, card.top, card.left, card.id))
-        });
+        })
 
         this.table = []
-        game.table.forEach(group => {
+        game.table.forEach((group) => {
             let newGroup = []
-            group.forEach(card => {
+            group.forEach((card) => {
                 newGroup.push(new Card(card.suit, card.value, card.top, card.left, card.id))
-            });
+            })
             this.table.push(newGroup)
-        });
+        })
 
-        this.currentPlayer = new Player(game.currentPlayer.name, game.currentPlayer.roundsWon, game.currentPlayer.score, game.currentPlayer.isDown, game.currentPlayer.index)
+        this.currentPlayer = new Player(
+            game.currentPlayer.name,
+            game.currentPlayer.roundsWon,
+            game.currentPlayer.score,
+            game.currentPlayer.isDown,
+            game.currentPlayer.index
+        )
         this.currentRound = game.currentRound
         this.hasDrawn = game.hasDrawn
         this.hasDiscarded = game.hasDiscarded
-
     }
 
     getPlayer(name) {
         let foundPlayer = null
-        this.players.forEach(player => {
+        this.players.forEach((player) => {
             if (player.name == name) {
                 foundPlayer = player
             }
-        });
+        })
         return foundPlayer
     }
 
     startGame() {
-        this.currentPlayer = this.players[this.currentPlayerIndex];
-        this.setup();
+        this.currentPlayer = this.players[this.currentPlayerIndex]
+        this.setup()
     }
 
     addPlayer(playerName) {
@@ -287,7 +298,7 @@ class Game {
 
         return true
     }
-    
+
     endRound(playerIndex) {
         const player = this.players[playerIndex]
 
@@ -295,7 +306,7 @@ class Game {
             this.currentRound++
             player.roundsWon++
             player.score -= (this.currentRound + 1) * 10
-    
+
             this.players.forEach((player) => {
                 player.recalculateScore()
             })
@@ -303,10 +314,10 @@ class Game {
             this.setup()
             return true
         }
-        
+
         return false
     }
-    
+
     finishGame() {
         return this.currentRound >= this.roundDealNumber.length
     }

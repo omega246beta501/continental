@@ -7,7 +7,13 @@
         </div>
         <div class="row">
             <div class="col">
-                <input @click="sendStartGameSignal" v-show="isPlayerAdmin" class="game-button" type="button" value="Iniciar juego">
+                <input
+                    @click="sendStartGameSignal"
+                    v-show="isPlayerAdmin"
+                    class="game-button"
+                    type="button"
+                    value="Iniciar juego"
+                />
             </div>
         </div>
     </div>
@@ -25,22 +31,21 @@ export default {
     created() {
         this.ws = this.$commonWebSocket
         this.ws.onmessage = (event) => {
-
             let message = JSON.parse(event.data)
             if (message.key == 'startGame') {
                 this.$commonGameObject.copy(message.value)
                 this.startGame()
             }
-        };
+        }
     },
     computed: {
         isPlayerAdmin() {
             return this.playerName == 'omega'
-        },
+        }
     },
     methods: {
         sendStartGameSignal() {
-            this.ws.send(JSON.stringify({ key: 'startGame'} ))
+            this.ws.send(JSON.stringify({ key: 'startGame' }))
         },
         startGame() {
             this.$router.push({

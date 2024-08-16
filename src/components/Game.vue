@@ -7,19 +7,31 @@
                 <h2 v-if="isMyTurn">Es tu turno</h2>
 
                 <div v-show="!isMyTurn">
-                    <h3 v-for="(roundMessage, index) in turnMessages"> {{ roundMessage }}</h3>
+                    <h3 v-for="(roundMessage, index) in turnMessages">{{ roundMessage }}</h3>
                 </div>
             </div>
         </div>
         <div class="row">
             <div id="controls" class="col">
-                <button class="game-button" @click="drawCard" v-show="!hasDrawn && game.currentPlayer.name == thisPlayer.name">
+                <button
+                    class="game-button"
+                    @click="drawCard"
+                    v-show="!hasDrawn && game.currentPlayer.name == thisPlayer.name"
+                >
                     Robar carta
                 </button>
-                <button class="game-button" @click="goDown" v-show="!thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name">
+                <button
+                    class="game-button"
+                    @click="goDown"
+                    v-show="!thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name"
+                >
                     Bajarse
                 </button>
-                <button class="game-button" @click="meterCard" v-show="thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name">
+                <button
+                    class="game-button"
+                    @click="meterCard"
+                    v-show="thisPlayer.isDown && game.currentPlayer.name == thisPlayer.name"
+                >
                     Meter
                 </button>
                 <button class="game-button" @click="showScores">Ver puntuaciones</button>
@@ -29,7 +41,11 @@
         <div class="row">
             <div class="col">
                 <div id="discard-pile">
-                    <div v-if="discardPile.length" class="card" @click="drawDiscard(thisPlayer.name)">
+                    <div
+                        v-if="discardPile.length"
+                        class="card"
+                        @click="drawDiscard(thisPlayer.name)"
+                    >
                         {{ discardPile[discardPile.length - 1].getCardString() }}
                     </div>
                 </div>
@@ -91,7 +107,7 @@ export default {
             gameMessages: [],
             turnMessages: [],
             hasDrawn: false,
-            ws: null,
+            ws: null
         }
     },
     created() {
@@ -113,8 +129,7 @@ export default {
                     this.thisPlayerIndex = this.thisPlayer.index
                     this.currentPlayer = this.game.currentPlayer
                     this.updateState()
-                }
-                else {
+                } else {
                     this.$router.push('/')
                 }
             }
@@ -125,9 +140,8 @@ export default {
 
             if (message.key == 'turnEnded') {
                 if (this.playerName == message.value) {
-                    alert("Es tu turno")
-                }
-                else {
+                    alert('Es tu turno')
+                } else {
                     alert(`Turno de ${message.value}`)
                 }
             }
@@ -136,25 +150,24 @@ export default {
                 const winner = this.game.players[message.value]
 
                 if (winner.name == this.playerName) {
-                    alert("Has ganado esta ronda")
-                }
-                else {
+                    alert('Has ganado esta ronda')
+                } else {
                     alert(`${winner.name} ha ganado esta ronda`)
                 }
             }
-        };
+        }
 
         setTimeout(() => {
-            this.ws.send(JSON.stringify({ key: 'updateGame'} ))
-        }, 100);
+            this.ws.send(JSON.stringify({ key: 'updateGame' }))
+        }, 100)
 
         setTimeout(() => {
             this.game = this.$commonGameObject
-    
+
             this.thisPlayer = this.$commonGameObject.getPlayer(this.playerName)
             this.thisPlayerIndex = this.thisPlayer.index
             this.updateState()
-        }, 200);
+        }, 200)
     },
     computed: {
         isMyTurn() {
@@ -173,14 +186,26 @@ export default {
         drawCard() {
             if (this.checkIsMyTurn()) {
                 if (this.game.drawCard(this.thisPlayer.index)) {
-                    this.ws.send(JSON.stringify({ key: 'playerDrawedCard', value: this.playerName, game: this.game } ))
+                    this.ws.send(
+                        JSON.stringify({
+                            key: 'playerDrawedCard',
+                            value: this.playerName,
+                            game: this.game
+                        })
+                    )
                 }
             }
         },
         drawDiscard() {
             if (this.checkIsMyTurn()) {
                 if (this.game.drawDiscard(this.thisPlayer.index)) {
-                    this.ws.send(JSON.stringify({ key: 'playerDrawedDiscard', value: this.playerName, game: this.game } ))
+                    this.ws.send(
+                        JSON.stringify({
+                            key: 'playerDrawedDiscard',
+                            value: this.playerName,
+                            game: this.game
+                        })
+                    )
                 }
                 this.updateState()
             }
@@ -188,7 +213,13 @@ export default {
         discardCard(cardIndex) {
             if (this.checkIsMyTurn()) {
                 if (this.game.discardCard(this.thisPlayer.index, cardIndex)) {
-                    this.ws.send(JSON.stringify({ key: 'playerDiscartedCard', value: this.playerName, game: this.game } ))
+                    this.ws.send(
+                        JSON.stringify({
+                            key: 'playerDiscartedCard',
+                            value: this.playerName,
+                            game: this.game
+                        })
+                    )
                 }
                 this.updateState()
             }
@@ -196,8 +227,13 @@ export default {
         goDown() {
             if (this.checkIsMyTurn()) {
                 if (this.game.goDown(this.thisPlayerIndex)) {
-                    debugger
-                    this.ws.send(JSON.stringify({ key: 'playerWentDown', value: this.playerName, game: this.game } ))
+                    this.ws.send(
+                        JSON.stringify({
+                            key: 'playerWentDown',
+                            value: this.playerName,
+                            game: this.game
+                        })
+                    )
                 }
                 this.updateState()
             }
@@ -205,7 +241,13 @@ export default {
         meterCard() {
             if (this.checkIsMyTurn()) {
                 if (this.game.meterCard(this.thisPlayerIndex)) {
-                    this.ws.send(JSON.stringify({ key: 'playerMetioCard', value: this.playerName, game: this.game } ))
+                    this.ws.send(
+                        JSON.stringify({
+                            key: 'playerMetioCard',
+                            value: this.playerName,
+                            game: this.game
+                        })
+                    )
                 }
                 this.updateState()
             }
@@ -219,9 +261,8 @@ export default {
         checkIsMyTurn() {
             if (this.isMyTurn) {
                 return true
-            }
-            else {
-                alert("No es tu turno")
+            } else {
+                alert('No es tu turno')
                 return false
             }
         }

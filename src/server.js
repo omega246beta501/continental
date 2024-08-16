@@ -1,6 +1,5 @@
 import WebSocket, { WebSocketServer } from 'ws'
 import { Game } from './game.js'
-import { send } from 'vite'
 
 const wss = new WebSocketServer({ port: 8080 })
 
@@ -12,21 +11,20 @@ let gameMessages = []
 let hasGameStarted = false
 
 wss.on('connection', (ws) => {
-
     function sendToAll(message) {
-        clients.forEach(client => {
+        clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(message))
             }
-        });
+        })
     }
 
     function sendToAllButSender(message) {
-        clients.forEach(client => {
+        clients.forEach((client) => {
             if (client != ws && client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(message))
             }
-        });
+        })
     }
 
     function enviar(message) {
@@ -36,12 +34,18 @@ wss.on('connection', (ws) => {
     function storeMessage(message) {
         turnMessages.push(message)
         gameMessages.push(message)
-        sendToAll({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages }})
+        sendToAll({
+            key: 'logMessages',
+            value: { turnMessages: turnMessages, gameMessages: gameMessages }
+        })
     }
 
     function updateGame() {
-        sendToAll({ key: 'gameUpdated', value: game})
-        sendToAll({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages }})
+        sendToAll({ key: 'gameUpdated', value: game })
+        sendToAll({
+            key: 'logMessages',
+            value: { turnMessages: turnMessages, gameMessages: gameMessages }
+        })
     }
 
     clients.push(ws)
@@ -56,21 +60,21 @@ wss.on('connection', (ws) => {
         if (key == 'addPlayer') {
             if (!hasGameStarted) {
                 game.addPlayer(value)
-                console.log("Jugadores")
-                game.players.forEach(player => {
-                    console.log("Jugador: " + player.name)
-                });
+                console.log('Jugadores')
+                game.players.forEach((player) => {
+                    console.log('Jugador: ' + player.name)
+                })
             }
         }
 
         if (key == 'startGame') {
             console.log('Empieza el juego')
-            game.startGame();
+            game.startGame()
             hasGameStarted = true
 
             let startGameObject = {
                 key: 'startGame',
-                value: game,
+                value: game
             }
 
             sendToAll(startGameObject)
@@ -79,9 +83,11 @@ wss.on('connection', (ws) => {
         if (key == 'updateGame') {
             if (hasGameStarted) {
                 enviar({ key: 'gameUpdated', value: game })
-                enviar({ key: 'logMessages', value: { turnMessages: turnMessages, gameMessages: gameMessages } })
-            }
-            else {
+                enviar({
+                    key: 'logMessages',
+                    value: { turnMessages: turnMessages, gameMessages: gameMessages }
+                })
+            } else {
                 enviar({ key: 'gameUpdated', value: false })
             }
         }
@@ -119,8 +125,7 @@ wss.on('connection', (ws) => {
                 if (game.endRound(player.index)) {
                     storeMessage(`${value} ha cerrado`)
                     sendToAll({ key: 'roundEnded', value: player.index })
-                }
-                else {
+                } else {
                     sendToAll({ key: 'turnEnded', value: game.currentPlayer.name })
                 }
 
@@ -155,7 +160,5 @@ wss.on('connection', (ws) => {
         clients = clients.filter((client) => client !== ws)
     })
 })
-
-
 
 console.log('WebSocket server running on ws://localhost:8080')

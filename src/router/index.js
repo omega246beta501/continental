@@ -16,19 +16,19 @@ const router = createRouter({
             path: '/waiting-room',
             name: 'waitingRoom',
             component: WaitingRoomView,
-            props: route => ({ playerName: route.query.playerName })
+            props: (route) => ({ playerName: route.query.playerName })
         },
         {
             path: '/game',
             name: 'game',
             component: Game,
-            props: route => ({ playerName: route.query.playerName })
+            props: (route) => ({ playerName: route.query.playerName })
         },
         {
             path: '/scores',
             name: 'scores',
             component: ScoreView
-        },
+        }
     ]
 })
 

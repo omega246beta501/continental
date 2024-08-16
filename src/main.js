@@ -7,7 +7,7 @@ import { Game } from './game'
 
 const app = createApp(App)
 const commonGameObject = new Game()
-const commonWebSocket = new WebSocket('ws://localhost:8080');
+const commonWebSocket = new WebSocket('ws://localhost:8080')
 app.config.globalProperties.$commonGameObject = commonGameObject
 app.config.globalProperties.$commonWebSocket = commonWebSocket
 
